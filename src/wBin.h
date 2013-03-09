@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+#include <fstream>
 #include <vector>
 #include <stdexcept>
 #include <boost/filesystem.hpp>
@@ -104,21 +105,6 @@ namespace bin_write {
          : std::runtime_error( msg ) { }
    };
 
-   namespace {
-      class writer {
-         std::ofstream& _fp;
-         std::string _f;
-      public:
-         writer( std::ofstream& fp, std::string const& f ): _fp( fp ), _f( f ) {}
-         void operator()( std::string const& s ) {
-            _fp << s << std::endl;
-
-            if( _fp.bad() ) {
-               throw BadBinWrite( wb::err::write_file( _f ) );
-            }
-         }
-      };
-   }
 
    /*! \class tWriteBin
    *  \brief writes bin files

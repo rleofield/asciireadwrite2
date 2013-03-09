@@ -31,8 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+#include <fstream>
 #include <vector>
 #include <stdexcept>
+#include <cstdint>
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
@@ -135,7 +137,7 @@ namespace bin_read {
             throw BadBinRead( s );
          }
 
-         buf.resize( size, 0 );
+         buf.resize( static_cast<size_t>(size), 0 );
          char* const buffer = rb::toCharPtr( buf );
          fp.read( buffer, size );
 

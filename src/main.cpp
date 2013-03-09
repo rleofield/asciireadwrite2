@@ -57,10 +57,10 @@ writer()
 
 
 
+#include "rBin.h"
 #include "rList.h"
 #include "wList.h"
 #include "wBin.h"
-#include "rBin.h"
 
 
 using namespace std;
