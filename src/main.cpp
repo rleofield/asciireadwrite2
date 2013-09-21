@@ -18,44 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------------
 */
 
-/*
-
-1.
-
-Lesen von Ascii Files mit operator()
-
-std::list<std::string> operator()( const std::string &file )
-
-Diese Zeile:
-text = tReadAscii()( fn );
-
-erzeugt ein unnamed Temp-Objekt tReadAscii()
-an diesem temp-Objekt wird
-text = operator( filenem)
-aufgerufen.
-
-Damit bleibt eine Zeile übrig, um einen Text zu lesen und einem Container abzulegen.
-
-
-2.
-Einsatz  einer Hilfsklasse mit operator(),
-um Text zu schreiben:
-
-for_each( _lines.begin(), _lines.end(), writer(fp));
-
-Hilfsklasse
-writer()
-
-
-
-
-*/
-
 
 #include <string>
 #include <iostream>
-
-
 
 #include "rBin.h"
 #include "rList.h"
@@ -64,17 +29,8 @@ writer()
 
 
 using namespace std;
-#ifdef __linux__
 #pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 
-#ifdef _WIN32
-#pragma warning( disable : 4291 ) // Warning   30 warning C4291: 'void *txml::XmlComment::operator new(size_t,const nsl::tLfm &)' : no matching operator delete found; memory will not be freed if initialization throws an exception   c:\raprojekte\snippets\xmldemo\demo.cpp   218
-#pragma warning( disable : 4800 ) // Warning   7  warning C4800: 'int' : forcing value to bool 'true' or 'false' (performance warning)   c:\raprojekte\snippets\xmldemo\mxml_base.h   57
-#pragma warning( disable : 4996 ) // Warning   1  warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.   c:\raprojekte\snippets\xmldemo\stringhelper.cpp 360
-#pragma warning( disable : 4804 ) // Warning   12 warning C4804: '>' : unsafe use of type 'bool' in operation c:\raprojekte\snippets\xmldemo\mxml_document.cpp   407
-
-#endif
 
 bool hasMinusSign( std::string const& s ) {
    if( s.find( "-" ) != string::npos ) {
@@ -84,76 +40,81 @@ bool hasMinusSign( std::string const& s ) {
    return false;
 }
 
+
+
+
 int main( void ) {
 
 
-   string fn = "readascii.txt";
-   string textAsString;
+
+   // test: read/write a binary file
+
+   string testfilenameIn = "readascii.txt";
+   string testfilenameOut = "test_bin_write.txt";
+   vector<uint8_t> buffer;
+
+   try {
+      // read the file in one line of C++
+      cout << "read " << testfilenameIn << endl;
+      bin_read::t_bin_read()( testfilenameIn,  buffer );
+
+   }  catch( bin_read::bad_bin_read& ex ) {
+      cout << ex.what() << endl;
+   }
+
+   try {
+
+      // write the file in one line of C++
+      cout << "write " << testfilenameOut << endl;
+      bin_write::t_bin_write()( testfilenameOut, buffer );
+
+   }  catch( bin_write::bad_bin_write& ex ) {
+      cout << ex.what() << endl;
+   }
+
+   // test: read/filter/write an ascii file
+
    list<string> text;
-   vector<uint8_t> buf;
+   string textAsString;
 
    try {
+      // read text file in one line of C++
+      // result is in std::list
+      cout << "read " << testfilenameIn << endl;
+      text_read::t_text_read()( testfilenameIn, text );
 
-      bin_read::tReadBin()( fn, buf );
-
-   }  catch( bin_read::BadBinRead& ex ) {
-      cout << ex.what() << endl;
-   }
-
-   try {
-
-      // the testfile is written out, unchanged
-      bin_write::tWriteBin()( "test_bin_write.txt", buf );
-
-   }  catch( bin_write::BadBinWrite& ex ) {
-      cout << ex.what() << endl;
-   }
-
-
-
-   try {
-      cout << "read " << fn << endl;
-      // with 'unnamed' Objekt and operator()
-      text = text_read::tReadAscii()( fn );
-
-      // or
-      text_read::tReadAscii reader;
-      // with 'named' Objekt 'reader' and operator()
-      text = reader.operator()( fn );
-      textAsString = reader.to_string( fn );
-      //cout << textAsString;
-   } catch( text_read::BadAsciiRead& br ) {
+      // convert to string
+      // result is in std::string with lineends
+      textAsString = text_read::to_string( text );
+   } catch( text_read::bad_text_read& br ) {
       cout << "read error: " << br.what() << endl;
       return 1;
    }
+   cout << text.size() << " lines read " << testfilenameIn << endl;
 
-   cout << text.size() << " lines read " << fn << endl;
-
+   // do a filter operation with 'remove_if()'
    cout << text.size() << ", remove lines with \"--\" in text" << endl;
 
    // process text, remove certain lines as an example
    text.remove_if( hasMinusSign );
 
    // ---------------- out ---------------
-   string fnout = "test_ascii_write.txt";
-   string fnout1 = "test_named_object_ascii_write.txt";
 
+   testfilenameOut = "test_ascii_write.txt";
 
    try {
-      cout << "write " << fnout << endl;
+      // write the file in one line of C++
+      cout << "write " << testfilenameOut << endl;
 
       // with 'unnamed' object und operator()
-      text_write::tWriteAscii()( text, fnout );
+      text_write::t_write_ascii()( text, testfilenameOut );
 
-      // with 'named' objekt 'reader' and operator()
-      text_write::tWriteAscii writer;
-      writer.operator()( text, fnout1 );
-   } catch( text_write::BadAsciiWrite& bw ) {
+   } catch( text_write::bad_text_write& bw ) {
       string err = bw.what();
-      cout << "error writing" << err << endl;
+      cout << "error writing: " << err << endl;
       return 1;
    }
 
-   cout << " end " << fn << endl;
+   cout << " end " << testfilenameOut << endl;
 }
 

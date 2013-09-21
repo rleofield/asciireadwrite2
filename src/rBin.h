@@ -19,15 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef bin_data_tReadBin_H
-#define bin_data_tReadBin_H
+#ifndef T_BIN_READ_H
+#define T_BIN_READ_H
 
 
 
 /*! \file rList.h
-*  \brief class tReadBin, reads binary files
+*  \brief class t_bin_read, reads a binary file
 *  \author Richard Albrecht
-*  Header file for class tReadBin.
 */
 
 
@@ -38,112 +37,82 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
+#include "helper.h"
+
+using namespace helper;
 
 
 namespace bin_read {
 
 
-   namespace rb {
+   namespace err {
 
-      namespace err {
-         const std::string marker = "%s";
-         inline std::string replace( std::string const& msg, std::string const& s0 = "" ) {
-            ::std::string temp = msg;
+      const std::string msg_file_not_exists = "File doesn't exist: '" + marker + "'";
+      const std::string msg_read_file = " Couldn't read file '" + marker + "'";
 
-            if( s0.size() > 0 ) {
-               size_t pos = msg.find( marker );
-
-               if( pos != ::std::string::npos ) {
-                  temp.erase( pos, marker.size() );
-                  temp.insert( pos, s0 );
-               }
-            }
-
-            return temp;
-
-         }
-
-         const std::string msg_file_not_exists = "File doesn't exist: '%s'";
-         const std::string msg_read_file = " Couldn't read file '%s'";
-
-         inline std::string read_file_( std::string const& s0 ) {
-            return replace( msg_read_file, s0 );
-         }
-         inline std::string file_not_exists( std::string const& s0 ) {
-            return replace( msg_file_not_exists, s0 );
-         }
-      } // end of ns err
-
-
-      inline bool file_exists( boost::filesystem::path const& p ) {
-         if( !boost::filesystem::is_regular_file( p ) ) {
-            return false;
-         }
-
-         boost::filesystem::file_status s = status( p );
-
-         if( boost::filesystem::exists( s ) ) {
-            return true;
-         }
-
-         return false;
+      inline std::string read_file( std::string const& s0 ) {
+         return replace( msg_read_file, s0 );
       }
-      inline char* toCharPtr( std::vector<uint8_t> &b ) {
-         return reinterpret_cast<char* >( static_cast<uint8_t* >( &b[0] ) );
+      inline std::string file_not_exists( std::string const& s0 ) {
+         return replace( msg_file_not_exists, s0 );
       }
+   }
 
-   } // end of ns rb
 
 
-   /*! BadBinRead
+
+   /*! bad_bin_read
        \param [in] msg  error message
        */
-   class BadBinRead: public std::runtime_error {
+   class bad_bin_read: public std::runtime_error {
    public:
-      BadBinRead( const std::string& msg )
+      bad_bin_read( const std::string& msg )
          : std::runtime_error( msg ) { }
    };
 
-   /*! \class tReadBin
+   /*! \class t_bin_read
        *  \brief reads a binary file
        *
        */
-   class tReadBin  {
-      tReadBin& operator= ( const tReadBin& in );
-      tReadBin( const tReadBin& in );
+   class t_bin_read{
+
+      t_bin_read& operator= ( const t_bin_read& in );
+      t_bin_read( const t_bin_read& in );
    public:
 
-      /*! \brief default ctor
-          */
-      tReadBin() {}
-      ~tReadBin() {}
-      /*! \brief read a file
-          */
-      void operator()( const std::string& file, std::vector<uint8_t> &buf )  {
-         boost::filesystem::path p( file );
+      t_bin_read() {}
+      ~t_bin_read() {}
 
-         if( !rb::file_exists( p ) ) {
-            std::string s = rb::err::file_not_exists( file );
-            throw BadBinRead( s );
+      void operator()( const std::string& file, std::vector<uint8_t> &buf )  {
+
+         if( !file_exists( file ) ) {
+            std::string s = err::file_not_exists( file );
+            throw bad_bin_read( s );
          }
 
-         std::uintmax_t size = boost::filesystem::file_size( p );
 
-         std::ios_base::openmode mode = std::ios::in | std::ios::binary;
-         std::ifstream fp( p.c_str(), mode );
+         auto mode = std::ios::in | std::ios::binary;
+         std::ifstream fp( file.c_str(), mode );
 
          if( fp.bad() ) {
-            std::string s = rb::err::read_file_( file );
-            throw BadBinRead( s );
+            auto s = err::read_file( file );
+            throw bad_bin_read( s );
          }
 
-         buf.resize( static_cast<size_t>(size), 0 );
-         char* const buffer = rb::toCharPtr( buf );
+
+         // very slow
+         //std::istream_iterator<uint8_t> start(fp), end;
+         //buf.assign(start, end);
+
+         // fast
+         auto size = file_size( file );
+         buf.resize( size, 0 );
+         auto buffer = toCharPtr( buf );
          fp.read( buffer, size );
 
          if( fp.eof() ) {
-            std::string s = rb::err::read_file_( file );
-            throw BadBinRead( s );
+            auto s = err::read_file( file );
+            throw bad_bin_read( s );
          }
 
       }

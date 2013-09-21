@@ -19,15 +19,13 @@
 */
 
 
-#ifndef asciitext_tWriteAscii_H
-#define asciitext_tWriteAscii_H
+#ifndef T_TEXT_WRITE
+#define T_TEXT_WRITE
 
 
 /*! \file wList.h
- *  \brief class tWriteAscii, writes an text file
+ *  \brief class t_write_ascii, writes a text file
  *  \author Richard Albrecht
- *  Header file for class tWriteAscii.
- *  \sa wList
  */
 
 
@@ -40,32 +38,18 @@
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
+#include "helper.h"
+
+using namespace helper;
 
 namespace text_write {
 
-namespace wl {
    namespace err {
-      const std::string marker = "%s";
-      inline std::string replace( std::string const& msg, std::string const& s0 = "" ) {
-         std::string temp = msg;
 
-         if( s0.size() > 0 ) {
-            size_t pos = msg.find( marker );
-
-            if( pos != std::string::npos ) {
-               temp.erase( pos, marker.size() );
-               temp.insert( pos, s0 );
-            }
-         }
-
-         return temp;
-
-      }
-
-      const std::string msg_file_exists = "File exists: '%s'";
-      const std::string msg_write_file = "Couldn't write file: '%s'";
-      const std::string msg_open_file = "Couldn't open file for write: '%s'";
-      const std::string msg_text_empty = "Text has no lines: '%s'";
+      const std::string msg_file_exists = "File exists: '" + marker + "'";
+      const std::string msg_write_file = "Couldn't write file: '" + marker + "'";
+      const std::string msg_open_file = "Couldn't open file for write: '" + marker + "'";
+      const std::string msg_text_empty = "Text has no lines: '" + marker + "'";
 
       inline std::string write_file( std::string const& s0 ) {
          return replace( msg_write_file, s0 );
@@ -82,85 +66,68 @@ namespace wl {
 
    }
 
-   inline bool file_exists( boost::filesystem::path const& p ) {
-      if( !boost::filesystem::is_regular_file( p ) ) {
-         return false;
-      }
 
-      boost::filesystem::file_status s = status( p );
-
-      if( boost::filesystem::exists( s ) ) {
-         return true;
-      }
-
-      return false;
-   }
-
-}
-
-
-   /*! BadAsciiWrite,
+   /*! bad_text_write,
       Exception, if text write fails
       \param [in] msg  error message
       */
-   class BadAsciiWrite: public std::runtime_error {
+   class bad_text_write: public std::runtime_error {
    public:
-      BadAsciiWrite( const std::string& msg )
+      bad_text_write( const std::string& msg )
          : std::runtime_error( msg ) { }
    };
 
-   namespace {
-      class writer {
-         std::ofstream& _fp;
-         std::string _f;
-      public:
-         writer( std::ofstream& fp, std::string f ): _fp( fp ),_f(f) {}
-         void operator()( std::string const& s ) {
-            _fp << s << std::endl;
 
-            if( _fp.bad() ) {
-                throw BadAsciiWrite( wl::err::write_file(_f) );
-            }
-         }
-      };
-   }
-
-   /*! \class tWriteAscii
-       *  \brief writes ascii files
+   /*! \class t_write_ascii
+       *  \brief writes text file
        *
-       * an asciifile is stored in a <b>string</b> list<br>
+       * a textfile is stored in a <b>string</b> list<br>
        */
-   class tWriteAscii  {
-      // no copy allowed
-      tWriteAscii( const tWriteAscii& in );
-      tWriteAscii& operator= ( const tWriteAscii& in );
+   class t_write_ascii  {
+      t_write_ascii( const t_write_ascii& in );
+      t_write_ascii& operator= ( const t_write_ascii& in );
 
    public:
-      tWriteAscii() {}
-      ~tWriteAscii() {}
+      t_write_ascii() {}
+      ~t_write_ascii() {}
       void operator()( std::list<std::string> const& lines , const std::string& file ) {
-          boost::filesystem::path pa( file );
 
-          if( wl::file_exists( pa ) ) {
-             throw BadAsciiWrite( wl::err::file_exists( file ) );
-          }
+         if( file_exists( file ) ) {
+            throw bad_text_write( err::file_exists( file ) );
+         }
 
-          if( lines.size() == 0 ) {
-             throw BadAsciiWrite( wl::err::text_empty( file ) );
-          }
+         if( lines.size() == 0 ) {
+            throw bad_text_write( err::text_empty( file ) );
+         }
 
          if( lines.size() > 0 ) {
             std::ofstream fp( file.c_str() );
 
             if( fp.bad() ) {
-                throw BadAsciiWrite( wl::err::file_open(file) );
+               throw bad_text_write( err::file_open( file ) );
             }
 
-            for_each( lines.begin(), lines.end(), writer( fp, file ) );
+            try {
+               for_each( lines.begin(), lines.end(), writer( fp, file ) );
+            } catch( bad_text_write& ex ) {
+               throw bad_text_write( err::write_file( file + ex.what() ) );
+            }
          }
-
-
       }
+      class writer {
+         std::ofstream& _fp;
+         std::string const& _f;
+      public:
+         writer( std::ofstream& fp, std::string f ): _fp( fp ), _f( f ) {}
+         void operator()( std::string const& s ) {
+            _fp << s << std::endl;
+
+            if( _fp.bad() ) {
+               throw bad_text_write( "" );
+            }
+         }
+      };
+
 
    };
 

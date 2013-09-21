@@ -19,15 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef bin_data_tWriteBin_H
-#define bin_data_tWriteBin_H
+#ifndef T_BIN_WRITE
+#define T_BIN_WRITE
 
 
-/*! \file wList.h
-*  \brief class tWriteAscii, writes ascii files
+/*! \file wBin.h
+*  \brief class t_bin_write, writes a binary file
 *  \author Richard Albrecht
-*  Header file for class tWriteAscii.
-*  \sa wList
 */
 
 
@@ -37,31 +35,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
+#include "helper.h"
+
+using namespace helper;
+
 
 namespace bin_write {
-   namespace wb {
+
       namespace err {
-         const std::string marker = "%s";
-         inline std::string replace( std::string const& msg, std::string const& s0 = "" ) {
-            std::string temp = msg;
-
-            if( s0.size() > 0 ) {
-               size_t pos = msg.find( marker );
-
-               if( pos != std::string::npos ) {
-                  temp.erase( pos, marker.size() );
-                  temp.insert( pos, s0 );
-               }
-            }
-
-            return temp;
-
-         }
-
-         const std::string msg_file_exists = "File exists: '%s'";
-         const std::string msg_write_file = "Couldn't write file: '%s'";
-         const std::string msg_open_file = "Couldn't open file for write: '%s'";
-         const std::string msg_buffer_empty = "Buffer has zero size: '%s'";
+         const std::string msg_file_exists = "File exists: '" + marker + "'";
+         const std::string msg_write_file = "Couldn't write file: '" + marker + "'";
+         const std::string msg_open_file = "Couldn't open file for write: '" + marker + "'";
+         const std::string msg_buffer_empty = "Buffer has zero size: '" + marker + "'";
 
          inline std::string write_file( std::string const& s0 ) {
             return replace( msg_write_file, s0 );
@@ -78,95 +63,56 @@ namespace bin_write {
 
       }
 
-      inline bool file_exists( boost::filesystem::path const& p ) {
-         if( !boost::filesystem::is_regular_file( p ) ) {
-            return false;
-         }
 
-         boost::filesystem::file_status s = status( p );
 
-         if( boost::filesystem::exists( s ) ) {
-            return true;
-         }
 
-         return false;
-      }
 
-      inline char const* toCharPtr( std::vector<uint8_t> const& b ) {
-         return reinterpret_cast<char const* >( static_cast<uint8_t const* >( &b[0] ) );
-      }
-   }
-   /*! BadBinWrite,
+   /*! bad_bin_write,
    \param [in] msg  Message
    */
-   class BadBinWrite: public std::runtime_error {
+   class bad_bin_write: public std::runtime_error {
    public:
-      BadBinWrite( const std::string& msg )
+      bad_bin_write( const std::string& msg )
          : std::runtime_error( msg ) { }
    };
 
 
-   /*! \class tWriteBin
-   *  \brief writes bin files
+   /*! \class t_bin_write
+   *  \brief writes a binary file
    */
-   class tWriteBin  {
-      tWriteBin( const tWriteBin& in );
-      tWriteBin& operator= ( const tWriteBin& in );
+   class t_bin_write  {
+      t_bin_write( const t_bin_write& in );
+      t_bin_write& operator= ( const t_bin_write& in );
 
    public:
-      tWriteBin() {}
-      ~tWriteBin() {}
+      t_bin_write() {}
+      ~t_bin_write() {}
       void operator()( const std::string& file, std::vector<uint8_t> const& buf ) {
-         boost::filesystem::path pa( file );
 
-         if( wb::file_exists( pa ) ) {
-            throw BadBinWrite( wb::err::file_exists( file ) );
+
+         if( file_exists( file ) ) {
+            throw bad_bin_write( err::file_exists( file ) );
          }
 
          if( buf.size() == 0 ) {
-            throw BadBinWrite( wb::err::buffer_empty( file ) );
+            throw bad_bin_write( err::buffer_empty( file ) );
          }
 
          std::ios_base::openmode mode = std::ios::out | std::ios::binary;
-         std::ofstream fp( pa.c_str(), mode );
+         std::ofstream fp( file.c_str(), mode );
 
          if( fp.bad() ) {
-            throw BadBinWrite( wb::err::file_open( file ) );
+            throw bad_bin_write( err::file_open( file ) );
          }
 
-         char const* p = wb::toCharPtr( buf );
+         char const* p = toCharPtr( buf );
          fp.write( p, buf.size() );
 
          if( fp.bad() ) {
-            throw BadBinWrite( wb::err::write_file( file ) );
+            throw bad_bin_write( err::write_file( file ) );
          }
 
       }
-      void operator()( const std::string& file, uint8_t const* buf, size_t size ) {
-         boost::filesystem::path pa( file );
-
-         if( wb::file_exists( pa ) ) {
-            throw BadBinWrite( wb::err::file_exists( file ) );
-         }
-
-         if( size == 0 ) {
-            throw BadBinWrite( wb::err::buffer_empty( file ) );
-         }
-
-         std::ofstream fp( file.c_str(), std::ios::out | std::ios::binary );
-
-         if( fp.bad() ) {
-            throw BadBinWrite( wb::err::file_open( file ) );
-         }
-
-         char const* p =  reinterpret_cast<char const*>( buf );
-         fp.write( p, size );
-
-         if( fp.bad() ) {
-            throw BadBinWrite( wb::err::write_file( file ) );
-         }
-      }
-
 
    };
 

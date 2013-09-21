@@ -40,6 +40,7 @@ SOURCES += src/main.cpp
 HEADERS += src/wList.h \
    src/rList.h \
    src/rBin.h \
-   src/wBin.h
+   src/wBin.h \
+    src/helper.h
 
 LIBS= -lboost_system -lboost_filesystem
