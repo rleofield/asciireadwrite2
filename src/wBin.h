@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper.h"
 
-using namespace helper;
+using namespace helper_read_write_file;
 
 
 namespace bin_write {

@@ -40,7 +40,7 @@
 
 #include "helper.h"
 
-using namespace helper;
+using namespace helper_read_write_file;
 
 namespace text_write {
 
@@ -90,7 +90,7 @@ namespace text_write {
    public:
       t_write_ascii() {}
       ~t_write_ascii() {}
-      void operator()( std::list<std::string> const& lines , const std::string& file ) {
+      void operator()(  const std::string& file, std::list<std::string> const& lines ) {
 
          if( file_exists( file ) ) {
             throw bad_text_write( err::file_exists( file ) );
@@ -109,6 +109,30 @@ namespace text_write {
 
             try {
                for_each( lines.begin(), lines.end(), writer( fp, file ) );
+            } catch( bad_text_write& ex ) {
+               throw bad_text_write( err::write_file( file + ex.what() ) );
+            }
+         }
+      }
+      void operator()( const std::string& file, std::string const& str  ) {
+
+         if( file_exists( file ) ) {
+            throw bad_text_write( err::file_exists( file ) );
+         }
+
+         if( str.size() == 0 ) {
+            throw bad_text_write( err::text_empty( file ) );
+         }
+
+         if( str.size() > 0 ) {
+            std::ofstream fp( file.c_str() );
+
+            if( fp.bad() ) {
+               throw bad_text_write( err::file_open( file ) );
+            }
+
+            try {
+               writer( fp, file )(str);
             } catch( bad_text_write& ex ) {
                throw bad_text_write( err::write_file( file + ex.what() ) );
             }

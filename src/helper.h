@@ -27,7 +27,7 @@ Source:  elsamuko
 #pragma once
 
 
-namespace helper {
+namespace helper_read_write_file {
    template < class T >
    T FindAndReplace( const T& source,
                      const T& find,
@@ -68,7 +68,7 @@ namespace helper {
       return false;
    }
 
-   size_t file_size( std::string const& file ) {
+   boost::uintmax_t file_size( std::string const& file ) {
       boost::filesystem::path p( file );
       return boost::filesystem::file_size( p );
    }

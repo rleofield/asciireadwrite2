@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG -= qt
 
 
-DESTDIR += bin
+#DESTDIR += bin
 CONFIG  += x86_64
 
 OBJECTS_DIR = .tmp
@@ -11,7 +11,7 @@ MOC_DIR = .tmp
 UI_DIR = .tmp
 RCC_DIR = .tmp
 
-
+QMAKE_CXXFLAGS += -gdwarf-3
 
 QMAKE_CXXFLAGS_DEBUG += -O0
 QMAKE_CXXFLAGS_DEBUG += -std=c++0x
@@ -22,7 +22,7 @@ QMAKE_CXXFLAGS_DEBUG += -Wextra
 QMAKE_CXXFLAGS_DEBUG += -Wunused-parameter
 QMAKE_CXXFLAGS_DEBUG -= -Wwrite-strings
 QMAKE_CXXFLAGS_DEBUG -= -Wunused-variable
-#QMAKE_CXXFLAGS_DEBUG += -Weffc++
+QMAKE_CXXFLAGS_DEBUG += -Weffc++
 
 QMAKE_CXXFLAGS_RELEASE += -O2
 QMAKE_CXXFLAGS_RELEASE += -std=c++0x
@@ -33,14 +33,20 @@ QMAKE_CXXFLAGS_RELEASE += -Wextra
 QMAKE_CXXFLAGS_RELEASE += -Wunused-parameter
 QMAKE_CXXFLAGS_RELEASE -= -Wwrite-strings
 QMAKE_CXXFLAGS_RELEASE -= -Wunused-variable
-#QMAKE_CXXFLAGS_RELEASE += -Weffc++
+QMAKE_CXXFLAGS_RELEASE += -Weffc++
 
-SOURCES += src/main.cpp
+message("qmake asciireadwrite2")
 
-HEADERS += src/wList.h \
-   src/rList.h \
-   src/rBin.h \
-   src/wBin.h \
+
+SOURCES += \
+    src/main.cpp
+
+HEADERS += \
+    src/wList.h \
+    src/wBin.h \
+    src/rList.h \
+    src/rBin.h \
     src/helper.h
 
-LIBS= -lboost_system -lboost_filesystem
+LIBS += -lboost_system -lboost_filesystem
+

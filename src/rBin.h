@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper.h"
 
-using namespace helper;
+using namespace helper_read_write_file;
 
 
 namespace bin_read {
@@ -74,7 +74,7 @@ namespace bin_read {
        *  \brief reads a binary file
        *
        */
-   class t_bin_read{
+   class t_bin_read {
 
       t_bin_read& operator= ( const t_bin_read& in );
       t_bin_read( const t_bin_read& in );
@@ -106,7 +106,7 @@ namespace bin_read {
 
          // fast
          auto size = file_size( file );
-         buf.resize( size, 0 );
+         buf.resize( static_cast<size_t>( size ), 0 );
          auto buffer = toCharPtr( buf );
          fp.read( buffer, size );
 

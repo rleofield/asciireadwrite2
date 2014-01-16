@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper.h"
 
-using namespace helper;
+using namespace helper_read_write_file;
 
 namespace text_read {
    namespace err {
@@ -110,13 +110,42 @@ namespace text_read {
             }
          }
       }
+      void operator()( const std::string& filename, std::string& str )  {
+
+         if( !file_exists( filename ) ) {
+            std::string s = err::file_not_exists( filename );
+            throw bad_text_read( s );
+         }
+
+         std::ifstream fp( filename.c_str() );
+
+         if( fp.bad() ) {
+            std::string s = err::read_file( filename );
+            throw bad_text_read( s );
+         }
+
+         while( !fp.eof() ) {
+            std::string temp;
+            getline( fp, temp );
+
+            if( !fp.fail() ) {
+               str.append( temp );
+            } else {
+               if( !fp.eof() ) {
+                  std::string s = err::read_file( filename );
+                  throw bad_text_read( s );
+               }
+            }
+         }
+      }
 
    };
    // converts the output list to one string, with linebreaks
    inline std::string to_string( const std::list<std::string>& lines ) {
       struct merge {
-         std::string s; const std::string sep;
-         merge( std::string sep_ ): sep( sep_ ) {}
+         std::string s;
+         const std::string sep;
+         merge( std::string sep_ ): s(), sep( sep_ ) {}
          void operator()( std::string const& temp ) {
             if( !s.empty() ) {
                s += sep;
