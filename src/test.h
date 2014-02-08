@@ -16,59 +16,17 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------------
+Source:  rlf
 */
 
-/*
+#ifndef rlf_test_test_rw_H
+#define rlf_test_test_rw_H
 
-1.
-
-Lesen von Ascii Files mit operator()
-
-std::list<std::string> operator()( const std::string &file )
-
-Diese Zeile:
-text = tReadAscii()( fn );
-
-erzeugt ein unnamed Temp-Objekt tReadAscii()
-an diesem temp-Objekt wird
-text = operator( filenem)
-aufgerufen.
-
-Damit bleibt eine Zeile übrig, um einen Text zu lesen und einem Container abzulegen.
-
-
-2.
-Einsatz  einer Hilfsklasse mit operator(),
-um Text zu schreiben:
-
-for_each( _lines.begin(), _lines.end(), writer(fp));
-
-Hilfsklasse
-writer()
-
-*/
-
-
-
-
-#include "test.h"
-
-
-
-int main( void ) {
-
-   /*  int i = 0100;
-     if( 64 & 0b01000000 ){
-        i = (64 & 0b01000000);
-     }
-     if( 64 & 1 << 6 ){
-        i = 1 << 6;
-     }*/
-
-   test_rw::test();
-
-
+namespace test_rw{
+   void test();
 }
 
-//EOF
 
+#endif
+
+//EOF
