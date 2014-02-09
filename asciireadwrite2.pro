@@ -61,3 +61,10 @@ INCLUDEPATH += $$PWD/src/hstring
 
 LIBS += -lboost_system -lboost_filesystem
 
+OTHER_FILES += \
+    test_bin_write.txt \
+    test_ascii_write.txt \
+    readascii.txt \
+    lgpl-3.0.txt \
+    README.md
+
