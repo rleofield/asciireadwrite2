@@ -45,7 +45,6 @@ SOURCES += \
     src/hstring/stringhelper.cpp
 
 HEADERS += \
-    src/helper.h \
     src/binrw/wBin.h \
     src/binrw/rBin.h \
     src/txtrw/wList.h \

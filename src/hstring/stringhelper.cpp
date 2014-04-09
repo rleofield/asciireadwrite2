@@ -17,17 +17,23 @@
  ------------------------------------------------------------------------------
 */
 
+#include <iomanip>
 
+#include <boost/lexical_cast.hpp>
 
 #include "stringhelper.h"
 
-#include <iomanip>
 #include "gettokens.h"
 
 using namespace std;
 
 
 namespace rlf_hstring {
+
+   string stringify( size_t const& val ) {
+      return boost::lexical_cast<string>( val );
+   }
+
 
    // converts a hex string to size_t
    size_t hex_to_size_t( std::string const& s )  {
@@ -63,7 +69,9 @@ namespace rlf_hstring {
    string to_hex( size_t val, size_t w ) {
       std::ostringstream o;
       o <<  std::setfill( '0' ) << std::setw( w ) << hex << val;
-      return o.str();
+      std::string s = o.str();
+      cout << s << endl;
+      return s;
    }
 
    string to_bin( size_t val, size_t l ) {
@@ -179,7 +187,8 @@ namespace rlf_hstring {
 
       size_t start = begin - str.begin();
       size_t n = last.base() - begin;
-      return str.substr( start, n );
+      string temp = str.substr( start, n );
+      return temp;
    }
 
    string trim_right( string const& str, char ch ) {
@@ -239,6 +248,7 @@ namespace rlf_hstring {
 
    size_t index_right( string const& s, const string& pattern ) {
       size_t p = s.rfind( pattern );
+      //size_t sz = s.size();
       return p;
    }
 
@@ -356,16 +366,20 @@ namespace rlf_hstring {
       }
    }
 
-   std::string remove_quotes( std::string const& in, char quote ){
+   std::string remove_quotes( std::string const& in, char quote ) {
       string temp = in;
       char ch = last_char( temp ) ;
-      if( ch == quote ){
-         temp = remove_first(temp);
+
+      if( ch == quote ) {
+         temp = remove_first( temp );
       }
+
       ch = last_char( temp ) ;
-      if( ch == quote ){
-         temp = remove_last(temp);
+
+      if( ch == quote ) {
+         temp = remove_last( temp );
       }
+
       return temp;
    }
 
@@ -390,26 +404,26 @@ namespace rlf_hstring {
    }
 
 
-	 /*  vector<string> tokenize( string const& str, const string& delimiters ) {
-	 string::size_type pos_not_delimiter = str.find_first_not_of( delimiters, 0 );
-	 string::size_type pos_delimiter     = str.find_first_of( delimiters, pos_not_delimiter );
-	 vector<string> tokens;
+   /*  vector<string> tokenize( string const& str, const string& delimiters ) {
+   string::size_type pos_not_delimiter = str.find_first_not_of( delimiters, 0 );
+   string::size_type pos_delimiter     = str.find_first_of( delimiters, pos_not_delimiter );
+   vector<string> tokens;
 
-	 while( string::npos != pos_delimiter || string::npos != pos_not_delimiter ) {
-	 string::size_type length = pos_delimiter - pos_not_delimiter;
-	 string t = str.substr( pos_not_delimiter, length );
-	 t = trim(t,' ');
-	 tokens.push_back( t );
-	 pos_not_delimiter = str.find_first_not_of( delimiters, pos_delimiter );
-	 pos_delimiter = str.find_first_of( delimiters, pos_not_delimiter );
-	 }
+   while( string::npos != pos_delimiter || string::npos != pos_not_delimiter ) {
+   string::size_type length = pos_delimiter - pos_not_delimiter;
+   string t = str.substr( pos_not_delimiter, length );
+   t = trim(t,' ');
+   tokens.push_back( t );
+   pos_not_delimiter = str.find_first_not_of( delimiters, pos_delimiter );
+   pos_delimiter = str.find_first_of( delimiters, pos_not_delimiter );
+   }
 
-	 return tokens;
-	 }
-	 */
+   return tokens;
+   }
+   */
 
    vector<string> split( string const& l, string const& delimiters ) {
-		 return tTokens(l,delimiters)();
+      return tTokens( l, delimiters )();
    }
    vector<string> split( string const& l, char delim ) {
       string d;

@@ -29,7 +29,8 @@
 #include <typeinfo>
 #include <stdexcept>
 #include <vector>
-
+#include <assert.h>
+#include <boost/tr1/regex.hpp>
 
 
 namespace rlf_hstring {
@@ -81,6 +82,8 @@ namespace rlf_hstring {
       return o.str();
    }
 
+   std::string stringify( size_t const& val ) ;
+
 
    /*! Konvertiert einen Wert in einen String, Spezialisierung mit 'double'.
 
@@ -93,12 +96,12 @@ namespace rlf_hstring {
       o << std::setw( w ) << std::fixed << std::setprecision( prec ) << std::right << std::setfill( ' ' ) << val ;
       return  o.str();
    }
+
    inline std::string toString( int val, size_t w = 3 ) {
       std::ostringstream o;
       o << std::setw( w ) << std::fixed << std::right << std::setfill( ' ' ) << val ;
       return  o.str();
    }
-
 
 
 
@@ -135,7 +138,7 @@ namespace rlf_hstring {
 
       //insx >> x;
       if( !( insx >> x ) ) {
-         throw BadConversion( std::string( "toString(" ) + typeid( s ).name() + ")" );
+         throw BadConversion( "couldn't convert '"  + s + "'" );
       }
 
       return x;
@@ -288,7 +291,7 @@ namespace rlf_hstring {
    std::string remove_after( std::string const& in , std::string const& pattern ) ;
    std::string remove_last( std::string const& in );
    void remove_last_in_place( std::string& s );
-   std::string remove_quotes( std::string const& in, char quote ='\"' );
+   std::string remove_quotes( std::string const& in, char quote = '\"' );
 
    ////////
    // einfuegen
@@ -306,10 +309,8 @@ namespace rlf_hstring {
    std::vector<std::string> split( std::string const& line, std::string const& delimiters = " " );
    std::vector<std::string> split( std::string const& l, char delim );
 
+
 } // end ns    namespace hstring {
-
-
-
 
 
 

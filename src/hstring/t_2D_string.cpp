@@ -1,7 +1,6 @@
 /* --------------------------------------------------------------------------
     Copyright 2012 by Richard Albrecht
     richard.albrecht@rleofield.de
-    www.rleofield.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,42 +18,31 @@
 */
 
 
-#include <string>
 
-#include <istream>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <iomanip>
-#include <algorithm>
+#include "t_2D_string.h"
 
-
-#include "gettokens.h"
-#include "stringhelper.h"
 
 using namespace std;
 
+using rlf_minit::float_xy;
+using rlf_minit::double_xy;
+using rlf_minit::uint32_xy;
+using rlf_minit::int32_xy;
+
 namespace rlf_hstring {
 
-   tTokens::tTokens( const string& s, string const& delims ): _buffer() {
-      string temp = s;
-      size_t pos = temp.find_first_of( delims );
-
-      while( pos != string::npos ) {
-         string t = trim( temp.substr( 0, pos ) );
-
-         if( t.length() > 0 ) {
-            _buffer.push_back( t );
-         }
-
-         temp = trim( temp.substr( pos + 1 ) );
-         pos = temp.find_first_of( delims );
-      }
-
-      _buffer.push_back( trim( temp ) );
+   std::string toString( uint32_xy p ) {
+      return "(" + toString( p.x() ) + "," + toString( p.y() ) + ")";
    }
+   std::string toString( double_xy const& p ) {
+      return "(" + toString( p.x(), 6, 2 ) + "," + toString( p.y(), 6, 2 ) + ")";
+   }
+   std::string toString( float_xy const& p ) {
+      return "(" + toString( p.x(), 6, 2 ) + "," + toString( p.y(), 6, 2 ) + ")";
+   }
+
+
 
 } // end ns rlf_hstring
 
-
-// EOF
+//EOF

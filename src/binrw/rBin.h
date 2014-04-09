@@ -37,25 +37,78 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
-#include "helper.h"
-
-using namespace helper_read_write_file;
 
 
 namespace bin_read {
 
 
+
+   namespace rhelper {
+      const std::string marker = "%s";
+      inline std::string FindAndReplace( const std::string& source,
+                                         const std::string& find,
+                                         const std::string& replace ) {
+         size_t i;
+         size_t start = 0;
+         std::string ret = source;
+
+         for( ; ( i = ret.find( find, start ) ) != std::string::npos; ) {
+            ret.replace( i, find.length(), replace );
+            start = i + replace.length();
+         }
+
+         return ret;
+      }
+
+      inline std::string replace( std::string const& msg, std::string const& s0 = "" ) {
+
+         if( s0.size() > 0 ) {
+            return FindAndReplace( msg, rhelper::marker, s0 );
+         }
+
+         return msg;
+
+      }
+
+      inline bool file_exists_r( boost::filesystem::path const& p ) {
+         if( !boost::filesystem::is_regular_file( p ) ) {
+            return false;
+         }
+
+         boost::filesystem::file_status s = status( p );
+
+         if( boost::filesystem::exists( s ) ) {
+            return true;
+         }
+
+         return false;
+      }
+
+      inline char* toCharPtr( std::vector<uint8_t> &b ) {
+         return reinterpret_cast<char* >( static_cast<uint8_t* >( &b[0] ) );
+      }
+      inline char const* toCharPtr( std::vector<uint8_t> const& b ) {
+         return reinterpret_cast<char const* >( static_cast<uint8_t const* >( &b[0] ) );
+      }
+
+
+
+   }
+
    namespace err {
 
-      const std::string msg_file_not_exists = "File doesn't exist: '" + marker + "'";
-      const std::string msg_read_file = " Couldn't read file '" + marker + "'";
+      const std::string msg_file_not_exists = "File doesn't exist: '" + rhelper::marker + "'";
+      const std::string msg_read_file = " Couldn't read file '" + rhelper::marker + "'";
 
       inline std::string read_file( std::string const& s0 ) {
-         return replace( msg_read_file, s0 );
+         return rhelper::replace( msg_read_file, s0 );
       }
       inline std::string file_not_exists( std::string const& s0 ) {
-         return replace( msg_file_not_exists, s0 );
+         return rhelper::replace( msg_file_not_exists, s0 );
       }
+
+
+
    }
 
 
@@ -83,9 +136,9 @@ namespace bin_read {
       t_bin_read() {}
       ~t_bin_read() {}
 
-      void operator()( const std::string& file, std::vector<uint8_t> &buf )  {
+      void operator()( const std::string& file, std::vector<uint8_t> &buf, uint64_t size_ = -1 )  {
 
-         if( !file_exists( file ) ) {
+         if( !rhelper::file_exists_r( file ) ) {
             std::string s = err::file_not_exists( file );
             throw bad_bin_read( s );
          }
@@ -94,7 +147,7 @@ namespace bin_read {
          auto mode = std::ios::in | std::ios::binary;
          std::ifstream fp( file.c_str(), mode );
 
-         if( fp.bad() ) {
+         if( !fp.is_open() ) {
             auto s = err::read_file( file );
             throw bad_bin_read( s );
          }
@@ -105,10 +158,11 @@ namespace bin_read {
          //buf.assign(start, end);
 
          // fast
-         auto size = file_size( file );
-         buf.resize( static_cast<size_t>( size ), 0 );
-         auto buffer = toCharPtr( buf );
-         fp.read( buffer, size );
+         uintmax_t size = boost::filesystem::file_size( file );
+         if( size < size_ ) size_ = size;
+         buf.resize( static_cast<size_t>( size_ ), 0 );
+         auto buffer = rhelper::toCharPtr( buf );
+         fp.read( buffer, size_ );
 
          if( fp.eof() ) {
             auto s = err::read_file( file );
