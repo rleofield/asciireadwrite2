@@ -34,7 +34,6 @@ using namespace std;
 namespace rlf_hstring {
 
    namespace nsloc {
-
       const char* const de = "de_DE.utf8";
       const char* const ch = "de_CH.utf8";
 
@@ -66,6 +65,10 @@ namespace rlf_hstring {
       l.assign( v.begin(), v.end() );
    }
 
+   void string_to_vector( string const& s, vector<string>& v ) {
+      vector<string> const& r = rlf_hstring::split( s, "\n" );
+      v.insert( v.end(), r.begin(), r.end() );
+   }
 
    // converts a hex string to size_t
    size_t hex_to_size_t( string const& s )  {
@@ -428,6 +431,18 @@ namespace rlf_hstring {
          }
       };
    }
+   std::string merge( list<string>  const& v, string const& sep ) {
+      if( v.empty() ) {
+         return string();
+      }
+
+      if( v.size() == 1 ) {
+         return  *v.begin();
+      }
+
+      return for_each( v.begin(), v.end(), add( sep ) ).s;
+   }
+
    std::string merge( vector<string>  const& v, string const& sep ) {
       if( v.empty() ) {
          return string();

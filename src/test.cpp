@@ -64,11 +64,13 @@ writer()
 
 using namespace std;
 
-using rlf_txtrw::t_text_read;
-using rlf_txtrw::toString;
+using rlf_txtrw::t_text_read_list;
+using rlf_txtrw::t_text_read_string;
 using rlf_txtrw::bad_text_read;
 using rlf_txtrw::bad_text_write;
 using rlf_txtrw::t_write_ascii;
+using rlf_txtrw::t_write_ascii_list;
+//using rlf_txtrw::t_write_ascii_string;
 
 namespace test_rw{
 
@@ -125,15 +127,15 @@ void test(  ) {
       // read text file in one line of C++
       // result is in std::list
       cout << "read " << testfilenameIn << endl;
-      t_text_read()( testfilenameIn, text );
+      t_text_read_list()( testfilenameIn, text );
 
       // convert to string
       // result is in std::string with lineends
-      textAsString = toString( text );
+      textAsString = rlf_hstring::merge( text, "\n" );
 
 
       cout << "read direct as string " << testfilenameIn << endl;
-      t_text_read()( testfilenameIn, textAsString2 );
+      t_text_read_string()( testfilenameIn, textAsString2 );
 
 
    } catch( bad_text_read& br ) {
@@ -158,7 +160,7 @@ void test(  ) {
       cout << "write " << testfilenameOut << endl;
 
       // write list with 'unnamed' object und operator()
-      t_write_ascii()( testfilenameOut, text, true );
+      t_write_ascii_list()( testfilenameOut, text, true );
 
       // write string with 'unnamed' object und operator()
       t_write_ascii()( testfilenameOut, textAsString, true);
