@@ -22,7 +22,7 @@ Source:  rlf
 #ifndef rlf_test_test_rw_H
 #define rlf_test_test_rw_H
 
-namespace test_rw{
+namespace test_rw {
    void test();
 }
 
