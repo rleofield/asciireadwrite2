@@ -33,6 +33,7 @@ using namespace std;
 
 namespace rlf_hstring {
 
+
    namespace nsloc {
 
       const char* const de = "de_DE.utf8";
@@ -262,6 +263,11 @@ namespace rlf_hstring {
    size_t index( string const& s, string const& pattern, size_t pos ) {
       return s.find( pattern, pos );
    }
+
+   bool contains( string const& s, string const& pattern ) {
+      return s.find( pattern, string::npos ) != string::npos;
+   }
+
 
    size_t index_right( string const& s, const string& pattern ) {
       size_t p = s.rfind( pattern );

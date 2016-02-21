@@ -61,6 +61,8 @@ writer()
 #include "rList.h"
 #include "wList.h"
 #include "wBin.h"
+#include "test.h"
+
 
 using namespace std;
 
@@ -116,6 +118,17 @@ namespace test_rw {
       }  catch( bin_write::bad_bin_write& ex ) {
          cout << ex.what() << endl;
       }
+
+
+      try {
+         // read part of file in one line of C++
+         cout << "read " << testfilenameIn << endl;
+         bin_read::t_bin_read()( testfilenameIn,  buffer, 20 );
+
+      }  catch( bin_read::bad_bin_read& ex ) {
+         cout << ex.what() << endl;
+      }
+
 
       // test: read/filter/write an ascii file
 

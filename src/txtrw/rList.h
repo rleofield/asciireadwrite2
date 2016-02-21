@@ -38,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>
 #include <boost/filesystem.hpp>
 
+#include <test_functions.h>
+
 
 namespace rlf_txtrw {
 
@@ -123,14 +125,16 @@ namespace rlf_txtrw {
       t_text_read_list& operator= ( const t_text_read_list& in );
       t_text_read_list( const t_text_read_list& in );
 
+      std::string _filename;
 
    public:
 
-      t_text_read_list() {}
+      t_text_read_list(): _filename() {}
+      t_text_read_list( const std::string& filename ): _filename( filename ) {}
       ~t_text_read_list() {}
 
       void operator()( const std::string& filename, std::list<std::string>& lines )  {
-
+         _filename = _filename;
          if( !err::file_exists_r( filename ) ) {
             std::string s = err::file_not_exists( filename );
             throw bad_text_read( s );
@@ -156,6 +160,19 @@ namespace rlf_txtrw {
                }
             }
          }
+      }
+
+
+      operator std::list<std::string> () {
+         std::list<std::string> lines ;
+         *this = lines;
+         return std::move(lines);
+      }
+
+   private:
+      t_text_read_list& operator=( std::list<std::string>& lines )  {
+         operator()(_filename,lines);
+         return *this;
       }
 
    };
@@ -206,14 +223,16 @@ namespace rlf_txtrw {
       t_text_read& operator= ( const t_text_read& in );
       t_text_read( const t_text_read& in );
 
+      std::string _filename = std::string();
 
    public:
 
       t_text_read() {}
+      t_text_read( const std::string& filename ): _filename( filename ) {}
       ~t_text_read() {}
 
       void operator()( const std::string& filename, std::vector<std::string>& lines )  {
-
+         _filename = filename;
          if( !err::file_exists_r( filename ) ) {
             std::string s = err::file_not_exists( filename );
             throw bad_text_read( s );
@@ -240,6 +259,17 @@ namespace rlf_txtrw {
             }
          }
       }
+      operator std::vector<std::string> () {
+         std::vector<std::string> lines ;
+         *this = lines;
+         return std::move(lines);
+      }
+   private:
+      t_text_read& operator=( std::vector<std::string>& lines )  {
+         operator()(_filename,lines);
+         return *this;
+      }
+
 
    };
 

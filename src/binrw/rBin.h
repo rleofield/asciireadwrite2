@@ -37,14 +37,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
+#include <test_functions.h>
+
 
 
 namespace bin_read {
 
 
+   const std::string marker = "%s";
 
-   namespace rhelper {
-      const std::string marker = "%s";
+   namespace  {
       inline std::string FindAndReplace( const std::string& source,
                                          const std::string& find,
                                          const std::string& replace ) {
@@ -84,12 +86,6 @@ namespace bin_read {
          return false;
       }
 
-      inline char* toCharPtr( std::vector<uint8_t>& b ) {
-         return reinterpret_cast<char* >( static_cast<uint8_t* >( &b[0] ) );
-      }
-      inline char const* toCharPtr( std::vector<uint8_t> const& b ) {
-         return reinterpret_cast<char const* >( static_cast<uint8_t const* >( &b[0] ) );
-      }
 
 
 
@@ -97,14 +93,14 @@ namespace bin_read {
 
    namespace err {
 
-      const std::string msg_file_not_exists = "File doesn't exist: '" + rhelper::marker + "'";
-      const std::string msg_read_file = " Couldn't read file '" + rhelper::marker + "'";
+      const std::string msg_file_not_exists = "File doesn't exist: '" + marker + "'";
+      const std::string msg_read_file = " Couldn't read file '" + marker + "'";
 
       inline std::string read_file( std::string const& s0 ) {
-         return rhelper::replace( msg_read_file, s0 );
+         return replace( msg_read_file, s0 );
       }
       inline std::string file_not_exists( std::string const& s0 ) {
-         return rhelper::replace( msg_file_not_exists, s0 );
+         return replace( msg_file_not_exists, s0 );
       }
 
 
@@ -138,7 +134,7 @@ namespace bin_read {
 
       void operator()( const std::string& file, std::vector<uint8_t>& buf, uint64_t size_ = -1 )  {
 
-         if( !rhelper::file_exists_r( file ) ) {
+         if( !file_exists_r( file ) ) {
             std::string s = err::file_not_exists( file );
             throw bad_bin_read( s );
          }
@@ -165,7 +161,7 @@ namespace bin_read {
          }
 
          buf.resize( static_cast<size_t>( size_ ), 0 );
-         auto buffer = rhelper::toCharPtr( buf );
+         auto buffer = to_char_ptr<uint8_t>( buf );
          fp.read( buffer, size_ );
 
          if( fp.eof() ) {
