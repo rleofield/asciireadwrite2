@@ -66,12 +66,12 @@ writer()
 
 using namespace std;
 
-using rlf_txtrw::t_text_read_list;
+using rlf_txtrw::t_text_read;
 using rlf_txtrw::t_text_read_string;
 using rlf_txtrw::bad_text_read;
 using rlf_txtrw::bad_text_write;
-using rlf_txtrw::t_write_ascii;
-using rlf_txtrw::t_write_ascii_list;
+using rlf_txtrw::t_write_text;
+using rlf_txtrw::t_write_text;
 //using rlf_txtrw::t_write_ascii_string;
 
 namespace test_rw {
@@ -103,7 +103,12 @@ namespace test_rw {
       try {
          // read the file in one line of C++
          cout << "read " << testfilenameIn << endl;
-         bin_read::t_bin_read()( testfilenameIn,  buffer );
+         // buffer is from extern
+         //bin_read::t_bin_read( testfilenameIn,  buffer );
+
+         // buffer ist intern allocated, use move in return
+         buffer = bin_read::t_bin_read( testfilenameIn );
+
 
       }  catch( bin_read::bad_bin_read& ex ) {
          cout << ex.what() << endl;
@@ -113,7 +118,7 @@ namespace test_rw {
 
          // write the file in one line of C++
          cout << "write " << testfilenameOut << endl;
-         bin_write::t_bin_write()( testfilenameOut, buffer );
+        bin_write::t_bin_write (testfilenameOut,  buffer );
 
       }  catch( bin_write::bad_bin_write& ex ) {
          cout << ex.what() << endl;
@@ -123,7 +128,7 @@ namespace test_rw {
       try {
          // read part of file in one line of C++
          cout << "read " << testfilenameIn << endl;
-         bin_read::t_bin_read()( testfilenameIn,  buffer, 20 );
+         buffer = bin_read::t_bin_read( testfilenameIn,  5 );
 
       }  catch( bin_read::bad_bin_read& ex ) {
          cout << ex.what() << endl;
@@ -133,22 +138,23 @@ namespace test_rw {
       // test: read/filter/write an ascii file
 
       list<string> text;
-      string textAsString;
-      string textAsString2;
+      string text_as_string;
+      string text_as_string2;
 
       try {
          // read text file in one line of C++
          // result is in std::list
          cout << "read " << testfilenameIn << endl;
-         t_text_read_list()( testfilenameIn, text );
+         //text = t_text_read_list( testfilenameIn );
 
          // convert to string
          // result is in std::string with lineends
-         textAsString = rlf_hstring::merge( text, "\n" );
+         text_as_string = rlf_hstring::merge( text, "\n" );
 
 
-         cout << "read direct as string " << testfilenameIn << endl;
-         t_text_read_string()( testfilenameIn, textAsString2 );
+         cout << "read as string, \r\n is converted to \n  " << testfilenameIn << endl;
+         text_as_string2  = t_text_read_string(testfilenameIn );
+         cout << text_as_string2 << endl;
 
 
       } catch( bad_text_read& br ) {
@@ -161,6 +167,7 @@ namespace test_rw {
       // do a filter operation with 'remove_if()'
       cout << text.size() << ", remove lines with \"--\" in text" << endl;
 
+      // filter a text
       // process text, remove certain lines as an example
       text.remove_if( hasMinusSign );
 
@@ -173,10 +180,10 @@ namespace test_rw {
          cout << "write " << testfilenameOut << endl;
 
          // write list with 'unnamed' object und operator()
-         t_write_ascii_list()( testfilenameOut, text, true );
+         t_write_text()( testfilenameOut, text, true );
 
          // write string with 'unnamed' object und operator()
-         t_write_ascii()( testfilenameOut, textAsString, true );
+         t_write_text()( testfilenameOut, text_as_string, true );
 
 
       } catch( bad_text_write& bw ) {

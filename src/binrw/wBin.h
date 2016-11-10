@@ -129,38 +129,45 @@ namespace bin_write {
    *  \brief writes a binary file
    */
    class t_bin_write  {
-      t_bin_write( const t_bin_write& in );
-      t_bin_write& operator= ( const t_bin_write& in );
+
+         std::string _filename = std::string();
+
+         void operator()( std::vector<uint8_t> const& buf ) {
+            std::string file = _filename;
+
+            if( whelper::file_exists_w( file ) ) {
+               throw bad_bin_write( err::file_exists( file ) );
+            }
+
+            if( buf.size() == 0 ) {
+               throw bad_bin_write( err::buffer_empty( file ) );
+            }
+
+            std::ios_base::openmode mode = std::ios::out | std::ios::binary;
+            std::ofstream fp( file.c_str(), mode );
+
+            if( !fp.is_open() ) {
+               throw bad_bin_write( err::file_open( file ) );
+            }
+
+            auto p = to_char_ptr<uint8_t>( buf ) ;
+
+            fp.write( p, buf.size() );
+
+            if( fp.bad() ) {
+               throw bad_bin_write( err::write_file( file ) );
+            }
+
+         }
 
    public:
-      t_bin_write() {}
-      ~t_bin_write() {}
-      void operator()( const std::string& file, std::vector<uint8_t> const& buf ) {
-
-
-         if( whelper::file_exists_w( file ) ) {
-            throw bad_bin_write( err::file_exists( file ) );
-         }
-
-         if( buf.size() == 0 ) {
-            throw bad_bin_write( err::buffer_empty( file ) );
-         }
-
-         std::ios_base::openmode mode = std::ios::out | std::ios::binary;
-         std::ofstream fp( file.c_str(), mode );
-
-         if( !fp.is_open() ) {
-            throw bad_bin_write( err::file_open( file ) );
-         }
-
-         //unsigned char const* p = buf.data();
-         fp.write( reinterpret_cast<char const*>( buf.data() ), buf.size() );
-
-         if( fp.bad() ) {
-            throw bad_bin_write( err::write_file( file ) );
-         }
-
+      t_bin_write( const std::string& filename, std::vector<uint8_t> const& buf ): _filename( filename ){
+         operator()( buf );
       }
+
+      ~t_bin_write() {}
+      t_bin_write( const t_bin_write& in ) = delete;
+      t_bin_write& operator= ( const t_bin_write& in ) = delete;
 
    };
 

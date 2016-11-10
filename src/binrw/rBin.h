@@ -86,9 +86,6 @@ namespace bin_read {
          return false;
       }
 
-
-
-
    }
 
    namespace err {
@@ -102,11 +99,7 @@ namespace bin_read {
       inline std::string file_not_exists( std::string const& s0 ) {
          return replace( msg_file_not_exists, s0 );
       }
-
-
-
    }
-
 
 
 
@@ -125,51 +118,63 @@ namespace bin_read {
        */
    class t_bin_read {
 
-      t_bin_read& operator= ( const t_bin_read& in );
-      t_bin_read( const t_bin_read& in );
-   public:
+         std::string _filename = std::string();
+         uint64_t _read_size = -1;
 
-      t_bin_read() {}
-      ~t_bin_read() {}
+      public:
 
-      void operator()( const std::string& file, std::vector<uint8_t>& buf, uint64_t size_ = -1 )  {
+         //t_bin_read() = default;
+         t_bin_read( const std::string& filename, uint64_t read_size = -1  ): _filename( filename ), _read_size(read_size) {}
+         t_bin_read& operator= ( const t_bin_read& in ) = delete;
+         t_bin_read( const t_bin_read& in ) = delete;
+         ~t_bin_read() {}
 
-         if( !file_exists_r( file ) ) {
-            std::string s = err::file_not_exists( file );
-            throw bad_bin_read( s );
+         operator std::vector<uint8_t> () {
+            std::vector<uint8_t> buf ;
+            operator()(buf,_read_size);
+            return std::move(buf);
          }
 
+      private:
 
-         auto mode = std::ios::in | std::ios::binary;
-         std::ifstream fp( file.c_str(), mode );
+         void operator()( std::vector<uint8_t>& buf, uint64_t read_size = -1 )  {
+            if( !file_exists_r( _filename ) ) {
+               std::string s = err::file_not_exists( _filename );
+               throw bad_bin_read( s );
+            }
 
-         if( !fp.is_open() ) {
-            auto s = err::read_file( file );
-            throw bad_bin_read( s );
+
+            auto mode = std::ios::in | std::ios::binary;
+            std::ifstream fp( _filename.c_str(), mode );
+
+            if( !fp.is_open() ) {
+               auto s = err::read_file( _filename );
+               throw bad_bin_read( s );
+            }
+
+
+            // very slow
+            //std::istream_iterator<uint8_t> start(fp), end;
+            //buf.assign(start, end);
+
+            // fast
+            uintmax_t size = boost::filesystem::file_size( _filename );
+
+            if( read_size < size ) {
+               size = read_size;
+            }
+
+            buf.resize( static_cast<size_t>( size ), 0 );
+            auto buffer = to_char_ptr<uint8_t>( buf );
+            fp.read( buffer, size );
+
+            if( fp.eof() ) {
+               auto s = err::read_file( _filename );
+               throw bad_bin_read( s );
+            }
+
          }
 
-
-         // very slow
-         //std::istream_iterator<uint8_t> start(fp), end;
-         //buf.assign(start, end);
-
-         // fast
-         uintmax_t size = boost::filesystem::file_size( file );
-
-         if( size < size_ ) {
-            size_ = size;
-         }
-
-         buf.resize( static_cast<size_t>( size_ ), 0 );
-         auto buffer = to_char_ptr<uint8_t>( buf );
-         fp.read( buffer, size_ );
-
-         if( fp.eof() ) {
-            auto s = err::read_file( file );
-            throw bad_bin_read( s );
-         }
-
-      }
    };
 
 
