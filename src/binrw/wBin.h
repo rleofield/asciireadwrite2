@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  \author Richard Albrecht
 */
 
-
 #include <fstream>
 #include <vector>
 #include <stdexcept>
@@ -41,10 +40,14 @@ namespace bin_write {
 
 
    namespace whelper {
+      template <typename T>
+      char const* to_char_ptr( std::vector<T> const& b ) {
+         return reinterpret_cast<char const* >( b.data()  );
+      }
       const std::string marker = "%s";
-      inline std::string FindAndReplace( const std::string& source,
-                                         const std::string& find,
-                                         const std::string& replace ) {
+      std::string FindAndReplace( const std::string& source,
+                                  const std::string& find,
+                                  const std::string& replace ) {
          size_t i;
          size_t start = 0;
          std::string ret = source;
@@ -57,7 +60,7 @@ namespace bin_write {
          return ret;
       }
 
-      inline std::string replace( std::string const& msg, std::string const& s0 = "" ) {
+      std::string replace( std::string const& msg, std::string const& s0 = "" ) {
 
          if( s0.size() > 0 ) {
             return FindAndReplace( msg, whelper::marker, s0 );
@@ -67,9 +70,7 @@ namespace bin_write {
 
       }
 
-
-
-      inline bool file_exists_w( boost::filesystem::path const& p ) {
+      bool file_exists( boost::filesystem::path const& p ) {
          if( !boost::filesystem::is_regular_file( p ) ) {
             return false;
          }
@@ -82,8 +83,6 @@ namespace bin_write {
 
          return false;
       }
-
-
    }
 
 
@@ -105,69 +104,55 @@ namespace bin_write {
       inline std::string buffer_empty( std::string const& s0 ) {
          return whelper::replace( msg_buffer_empty, s0 );
       }
-
-
-
-
    }
-
-
-
-
-
-   /*! bad_bin_write,
-   \param [in] msg  Message
-   */
-   class bad_bin_write: public std::runtime_error {
-   public:
-      bad_bin_write( const std::string& msg )
-         : std::runtime_error( msg ) { }
-   };
-
 
    /*! \class t_bin_write
    *  \brief writes a binary file
    */
    class t_bin_write  {
+         t_bin_write( const t_bin_write& in );
+         t_bin_write& operator= ( const t_bin_write& in );
+
 
          std::string _filename = std::string();
 
-         void operator()( std::vector<uint8_t> const& buf ) {
+         void operator()( std::vector<uint8_t> const& buf, bool overwrite  ) {
             std::string file = _filename;
 
-            if( whelper::file_exists_w( file ) ) {
-               throw bad_bin_write( err::file_exists( file ) );
+
+            if( ! overwrite ) {
+            if( whelper::file_exists( file ) ) {
+               throw std::runtime_error( err::file_exists( file ) );
+            }
             }
 
             if( buf.size() == 0 ) {
-               throw bad_bin_write( err::buffer_empty( file ) );
+               throw std::runtime_error( err::buffer_empty( file ) );
             }
 
             std::ios_base::openmode mode = std::ios::out | std::ios::binary;
             std::ofstream fp( file.c_str(), mode );
 
             if( !fp.is_open() ) {
-               throw bad_bin_write( err::file_open( file ) );
+               throw std::runtime_error( err::file_open( file ) );
             }
 
-            auto p = to_char_ptr<uint8_t>( buf ) ;
+            auto p = whelper::to_char_ptr<uint8_t>( buf ) ;
 
-            fp.write( p, buf.size() );
+            fp.write( p, static_cast<long>(buf.size()) );
 
             if( fp.bad() ) {
-               throw bad_bin_write( err::write_file( file ) );
+               throw std::runtime_error( err::write_file( file ) );
             }
 
          }
 
    public:
-      t_bin_write( const std::string& filename, std::vector<uint8_t> const& buf ): _filename( filename ){
-         operator()( buf );
+      t_bin_write( const std::string& filename, std::vector<uint8_t> const& buf, bool overwrite = true ): _filename( filename ){
+         operator()( buf, overwrite );
       }
 
       ~t_bin_write() {}
-      t_bin_write( const t_bin_write& in ) = delete;
-      t_bin_write& operator= ( const t_bin_write& in ) = delete;
 
    };
 

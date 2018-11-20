@@ -68,132 +68,156 @@ using namespace std;
 
 using rlf_txtrw::t_text_read;
 using rlf_txtrw::t_text_read_string;
-using rlf_txtrw::bad_text_read;
-using rlf_txtrw::bad_text_write;
 using rlf_txtrw::t_write_text;
 using rlf_txtrw::t_write_text;
 //using rlf_txtrw::t_write_ascii_string;
 
 namespace test_rw {
 
-   bool hasMinusSign( std::string const& s ) {
-      if( s.find( "-" ) != string::npos ) {
-         return true;
-      }
 
-      return false;
-   }
+uint32_t rw_binary( ) {
 
-   void test( ) {
+    // test: read/write an asci file as binary file
 
-      /*  int i = 0100;
-        if( 64 & 0b01000000 ){
-           i = (64 & 0b01000000);
-        }
-        if( 64 & 1 << 6 ){
-           i = 1 << 6;
-        }*/
+    string testfilenameIn = "readascii.txt";
+    string testfilenameOut = "test_bin_write.txt";
+    vector<uint8_t> buffer;
 
-      // test: read/write a binary file
+    try {
+        // read the file in one char C++ array
+        cout << "read " << testfilenameIn << endl;
+        buffer = bin_read::t_bin_read( testfilenameIn );
+    }  catch( std::runtime_error& ex ) {
+        cout << ex.what() << endl;
+        return 1;
+    }
 
-      string testfilenameIn = "readascii.txt";
-      string testfilenameOut = "test_bin_write.txt";
-      vector<uint8_t> buffer;
+    try {
 
-      try {
-         // read the file in one line of C++
-         cout << "read " << testfilenameIn << endl;
-         // buffer is from extern
-         //bin_read::t_bin_read( testfilenameIn,  buffer );
+        // write the file in one line of C++
+        cout << "write " << testfilenameOut << endl;
+        bool overwrite = true;
+        bin_write::t_bin_write (testfilenameOut,  buffer, overwrite );
 
-         // buffer ist intern allocated, use move in return
-         buffer = bin_read::t_bin_read( testfilenameIn );
+    }  catch( std::runtime_error& ex ) {
+        cout << ex.what() << endl;
+        return 1;
+    }
+    return 0;
+}
 
+uint32_t r_partofbinary( ) {
 
-      }  catch( bin_read::bad_bin_read& ex ) {
-         cout << ex.what() << endl;
-      }
+    string testfilenameIn = "readascii.txt";
+    string testfilenameOut = "test_bin_write.txt";
+    vector<uint8_t> buffer;
 
-      try {
+    try {
+       // read part of file in one line of C++
+       cout << "read " << testfilenameIn << endl;
+       buffer = bin_read::t_bin_read( testfilenameIn,  5 );
 
-         // write the file in one line of C++
-         cout << "write " << testfilenameOut << endl;
-        bin_write::t_bin_write (testfilenameOut,  buffer );
-
-      }  catch( bin_write::bad_bin_write& ex ) {
-         cout << ex.what() << endl;
-      }
-
-
-      try {
-         // read part of file in one line of C++
-         cout << "read " << testfilenameIn << endl;
-         buffer = bin_read::t_bin_read( testfilenameIn,  5 );
-
-      }  catch( bin_read::bad_bin_read& ex ) {
-         cout << ex.what() << endl;
-      }
+    }  catch( std::runtime_error& ex ) {
+       cout << ex.what() << endl;
+       return 1;
+    }
+    return 0;
+}
 
 
-      // test: read/filter/write an ascii file
-
-      list<string> text;
-      string text_as_string;
-      string text_as_string2;
-
-      try {
-         // read text file in one line of C++
-         // result is in std::list
-         cout << "read " << testfilenameIn << endl;
-         //text = t_text_read_list( testfilenameIn );
-
-         // convert to string
-         // result is in std::string with lineends
-         text_as_string = rlf_hstring::merge( text, "\n" );
+bool hasMinusSign( std::string const& s ) {
+    if( s.find( "-" ) != string::npos ) {
+        return true;
+    }
+    return false;
+}
 
 
-         cout << "read as string, \r\n is converted to \n  " << testfilenameIn << endl;
-         text_as_string2  = t_text_read_string(testfilenameIn );
-         cout << text_as_string2 << endl;
+uint32_t rw_read_filter_ascii_file( ) {
+
+    string testfilenameIn = "readascii.txt";
+//    vector<uint8_t> buffer;
+
+    // test: read/filter/write an ascii file
+
+    vector<string> text_as_vector;
+    list<string> text_as_list;
+    string text_as_string;
+
+    try {
+        // read text file in one line of C++ into vector
+        // result is in std::list
+        cout << "read " << testfilenameIn << endl;
+        text_as_vector = rlf_txtrw::text_read_t< std::vector<std::string>>()( testfilenameIn );
+        text_as_list = rlf_txtrw::text_read_t< std::list<std::string>>()( testfilenameIn );
+
+        // convert to string
+        // result is in std::string with lineends '\n'
+        text_as_string = rlf_hstring::merge( text_as_vector, "\n" );
 
 
-      } catch( bad_text_read& br ) {
-         cout << "read error: " << br.what() << endl;
-
-      }
-
-      cout << text.size() << " lines read " << testfilenameIn << endl;
-
-      // do a filter operation with 'remove_if()'
-      cout << text.size() << ", remove lines with \"--\" in text" << endl;
-
-      // filter a text
-      // process text, remove certain lines as an example
-      text.remove_if( hasMinusSign );
-
-      // ---------------- out ---------------
-
-      testfilenameOut = "test_ascii_write.txt";
-
-      try {
-         // write the file in one line of C++
-         cout << "write " << testfilenameOut << endl;
-
-         // write list with 'unnamed' object und operator()
-         t_write_text()( testfilenameOut, text, true );
-
-         // write string with 'unnamed' object und operator()
-         t_write_text()( testfilenameOut, text_as_string, true );
+        cout << "read as string, \r\n is converted to \n  " << testfilenameIn << endl;
+        string text_as_string2 = t_text_read_string( testfilenameIn );
+        cout << text_as_string2 << endl;
 
 
-      } catch( bad_text_write& bw ) {
-         string err = bw.what();
-         cout << "error writing: " << err << endl;
+    } catch( std::runtime_error& br ) {
+        cout << "read error: " << br.what() << endl;
 
-      }
+    }
 
-      cout << " end " << testfilenameOut << endl;
-   }
+    cout << text_as_vector.size() << " lines read " << testfilenameIn << endl;
+
+    // do a filter operation with 'remove_if()'
+    cout << text_as_vector.size() << ", remove lines with \"--\" in text" << endl;
+
+    // filter a text
+    // process text, remove certain lines as an example
+    text_as_vector.erase( remove_if( text_as_vector.begin(), text_as_vector.end(), hasMinusSign ), text_as_vector.end() );
+
+    text_as_list.remove_if( hasMinusSign );
+    // ---------------- out ---------------
+
+    string testfilenameOut = "test_ascii_write.txt";
+
+    try {
+        // write the file in one line of C++
+        cout << "write " << testfilenameOut << endl;
+
+        // write vector with 'unnamed' object und operator()
+        bool overwrite = true;
+        t_write_text( testfilenameOut, text_as_vector, overwrite );
+
+        // write list with 'unnamed' object und operator()
+        t_write_text( testfilenameOut, text_as_list, true );
+
+
+    } catch( std::runtime_error& bw ) {
+        string err = bw.what();
+        cout << "error writing: " << err << endl;
+
+    }
+
+    cout << " end " << testfilenameOut << endl;
+    return 0;
+}
+
+
+uint32_t test( ) {
+
+    // test: read/write an asci file as binary file
+    uint32_t ret = rw_binary();
+    if( ret == 1) return ret;
+
+    ret = r_partofbinary();
+    if( ret == 1) return ret;
+
+    ret = rw_read_filter_ascii_file();
+    if( ret == 1) return ret;
+
+    cout << endl;
+    return ret;
+}
 } // end of namespace test_rw
 
 //EOF

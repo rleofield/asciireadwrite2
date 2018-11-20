@@ -19,11 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Source:  rlf
 */
 
+#include <cstdint>
+
 #ifndef rlf_test_test_rw_H
 #define rlf_test_test_rw_H
 
 namespace test_rw {
-   void test();
+   uint32_t test();
 }
 
 

@@ -3,6 +3,7 @@ Copyright 2012 by Richard Albrecht
 richard.albrecht@rleofield.de
 www.rleofield.de
 
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -37,12 +38,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/cstdint.hpp>
 
-#include <test_functions.h>
-
 
 
 namespace bin_read {
 
+   template <typename T>
+   inline char* to_char_ptr( std::vector<T>& b ) {
+      return reinterpret_cast<char* >( b.data()  );
+   }
+   template <typename T>
+   inline char const* to_char_ptr( std::vector<T> const& b ) {
+      return reinterpret_cast<char const* >( b.data()  );
+   }
 
    const std::string marker = "%s";
 
@@ -86,7 +93,7 @@ namespace bin_read {
          return false;
       }
 
-   }
+      }
 
    namespace err {
 
@@ -99,57 +106,43 @@ namespace bin_read {
       inline std::string file_not_exists( std::string const& s0 ) {
          return replace( msg_file_not_exists, s0 );
       }
-   }
+      }
 
-
-
-   /*! bad_bin_read
-       \param [in] msg  error message
-       */
-   class bad_bin_read: public std::runtime_error {
-   public:
-      bad_bin_read( const std::string& msg )
-         : std::runtime_error( msg ) { }
-   };
 
    /*! \class t_bin_read
-       *  \brief reads a binary file
-       *
-       */
+    *  \brief reads a binary file
+    *
+    */
    class t_bin_read {
 
          std::string _filename = std::string();
-         uint64_t _read_size = -1;
+         uint64_t _read_size = std::string::npos;
 
       public:
 
          //t_bin_read() = default;
-         t_bin_read( const std::string& filename, uint64_t read_size = -1  ): _filename( filename ), _read_size(read_size) {}
+         t_bin_read( const std::string& filename, uint64_t read_size = std::string::npos  ): _filename( filename ), _read_size(read_size) {}
          t_bin_read& operator= ( const t_bin_read& in ) = delete;
          t_bin_read( const t_bin_read& in ) = delete;
          ~t_bin_read() {}
 
          operator std::vector<uint8_t> () {
-            std::vector<uint8_t> buf ;
-            operator()(buf,_read_size);
-            return std::move(buf);
+            return (*this)(_read_size);
          }
 
       private:
 
-         void operator()( std::vector<uint8_t>& buf, uint64_t read_size = -1 )  {
+         std::vector<uint8_t> operator()( uint64_t read_size = std::string::npos )  {
             if( !file_exists_r( _filename ) ) {
                std::string s = err::file_not_exists( _filename );
-               throw bad_bin_read( s );
+               throw std::runtime_error( s );
             }
-
-
             auto mode = std::ios::in | std::ios::binary;
             std::ifstream fp( _filename.c_str(), mode );
 
             if( !fp.is_open() ) {
                auto s = err::read_file( _filename );
-               throw bad_bin_read( s );
+               throw std::runtime_error( s );
             }
 
 
@@ -163,22 +156,21 @@ namespace bin_read {
             if( read_size < size ) {
                size = read_size;
             }
-
-            buf.resize( static_cast<size_t>( size ), 0 );
-            auto buffer = to_char_ptr<uint8_t>( buf );
-            fp.read( buffer, size );
+            std::vector<uint8_t> buf(size,0) ;
+            auto buffer = reinterpret_cast<char* >( buf.data()  );
+            fp.read( buffer, static_cast<std::streamsize>(size) );
 
             if( fp.eof() ) {
                auto s = err::read_file( _filename );
-               throw bad_bin_read( s );
+               throw std::runtime_error( s );
             }
-
+            return buf;
          }
 
    };
 
 
-} // end of ns bin_read
+   } // end of ns bin_read
 
 #endif
 
